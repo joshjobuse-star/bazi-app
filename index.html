@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>八字命理大師</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+:root {
+  --ink: #19130a;
+  --muted: #6c604d;
+  --paper: #fff8e8;
+  --panel: #fffdf6;
+  --line: #e2c88f;
+  --gold: #bb8a28;
+  --deep: #201000;
+  --red: #9e2323;
+  --green: #276b42;
+  --blue: #225c8a;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Noto Sans TC", system-ui, sans-serif;
+}
+button, input, select, textarea { font: inherit; }
+.app { max-width: 1120px; margin: 0 auto; padding: 26px 18px 64px; }
+.top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 22px;
+  align-items: stretch;
+  margin-bottom: 18px;
+}
+.title-band {
+  background: var(--deep);
+  color: #ffe9ad;
+  border: 1px solid #5a3a0e;
+  border-radius: 8px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.title-band::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+.eyebrow { color: #cfa75b; font-weight: 700; letter-spacing: 0.18em; font-size: 13px; position: relative; }
+h1 {
+  position: relative;
+  font-family: "Noto Serif TC", serif;
+  margin: 7px 0 8px;
+  font-size: clamp(28px, 4vw, 46px);
+  letter-spacing: 0;
+}
+.subtitle { position: relative; color: rgba(255,233,173,0.75); margin: 0; line-height: 1.7; }
+.elements {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  background: #2d1a05;
+  border: 1px solid #5a3a0e;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.element { display: flex; align-items: center; justify-content: center; min-height: 100%; color: #fff; font-weight: 900; }
+.wood { background: #255d36; }
+.fire { background: #a53628; }
+.earth { background: #8b6627; }
+.metal { background: #68706f; }
+.water { background: #245f86; }
+.layout { display: grid; grid-template-columns: 410px minmax(0, 1fr); gap: 18px; align-items: start; }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+}
+.panel h2 {
+  font-family: "Noto Serif TC", serif;
+  margin: 0 0 16px;
+  font-size: 20px;
+  color: #8b651b;
+}
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+label { font-size: 13px; font-weight: 700; color: var(--muted); }
+input, select, textarea {
+  width: 100%;
+  border: 1px solid #d7bd80;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  padding: 11px 12px;
+  outline: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(187, 138, 40, 0.16);
+}
+textarea { min-height: 84px; resize: vertical; line-height: 1.7; }
+.segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.segmented button, .topic-grid button, .action-row button {
+  border: 1.5px solid #d7bd80;
+  background: #f4ead1;
+  color: var(--muted);
+  border-radius: 7px;
+  min-height: 46px;
+  cursor: pointer;
+  font-weight: 800;
+}
+.segmented button.active, .topic-grid button.active {
+  background: var(--deep);
+  color: #ffe9ad;
+  border-color: var(--gold);
+}
+.topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.api-line { border-top: 1px solid #ead8aa; padding-top: 12px; margin-top: 12px; }
+.action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.primary, .secondary {
+  border-radius: 8px;
+  min-height: 52px;
+  padding: 0 14px;
+  cursor: pointer;
+  font-weight: 900;
+}
+.primary { background: var(--deep); color: #ffe9ad; border: 2px solid var(--gold); }
+.secondary { background: #fff8e8; color: #8b651b; border: 1.5px solid var(--gold); }
+button:disabled { opacity: 0.55; cursor: wait; }
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.pillar {
+  background: var(--deep);
+  border-radius: 8px;
+  overflow: hidden;
+  text-align: center;
+  border: 1px solid #5a3a0e;
+}
+.pillar small { display: block; background: #c59a46; color: var(--deep); padding: 6px; font-weight: 900; }
+.pillar strong {
+  display: block;
+  color: #ffe9ad;
+  font-family: "Noto Serif TC", serif;
+  font-size: 25px;
+  padding: 16px 8px 12px;
+}
+.mini {
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 13px;
+  margin: 0 0 14px;
+}
+.status {
+  display: none;
+  border-radius: 8px;
+  padding: 13px 14px;
+  margin-top: 12px;
+  white-space: pre-wrap;
+  line-height: 1.65;
+  word-break: break-word;
+}
+.status.visible { display: block; }
+.status.ok { background: #eef8eb; color: var(--green); border: 1px solid #8fbd8a; }
+.status.bad { background: #fde9e9; color: var(--red); border: 1px solid #f0a8a8; }
+.result-card {
+  background: #fff;
+  border: 1px solid #e2c88f;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 14px;
+}
+.result-head {
+  background: var(--deep);
+  color: #ffe9ad;
+  padding: 13px 16px;
+  font-family: "Noto Serif TC", serif;
+  font-weight: 900;
+}
+.result-body {
+  padding: 18px;
+  line-height: 2;
+  font-size: 15px;
+}
+.result-body h3 {
+  font-family: "Noto Serif TC", serif;
+  color: #8b651b;
+  margin: 22px 0 8px;
+  padding-left: 10px;
+  border-left: 4px solid var(--gold);
+}
+.result-body h3:first-child { margin-top: 0; }
+.prompt-box {
+  background: #f6f1e3;
+  border: 1px solid #dbc184;
+  border-radius: 8px;
+  padding: 14px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+.copy-btn { margin-top: 10px; width: 100%; }
+.hidden { display: none; }
+.footer { color: #9b7b38; text-align: center; margin-top: 28px; font-family: "Noto Serif TC", serif; letter-spacing: 0.12em; }
+@media (max-width: 860px) {
+  .top, .layout { grid-template-columns: 1fr; }
+  .elements { min-height: 74px; }
+}
+@media (max-width: 560px) {
+  .grid-2, .topic-grid, .action-row { grid-template-columns: 1fr; }
+  .pillars { grid-template-columns: repeat(2, 1fr); }
+  .app { padding: 14px 12px 48px; }
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <section class="top">
+    <div class="title-band">
+      <div class="eyebrow">BAZI DESTINY MASTER</div>
+      <h1>八字命理大師</h1>
+      <p class="subtitle">輸入西元生日後自動換算四柱，生成命理詳批與九宮格 Q 版漫畫繪圖 Prompt。</p>
+    </div>
+    <div class="elements" aria-label="五行">
+      <div class="element wood">木</div>
+      <div class="element fire">火</div>
+      <div class="element earth">土</div>
+      <div class="element metal">金</div>
+      <div class="element water">水</div>
+    </div>
+  </section>
+
+  <section class="layout">
+    <form class="panel" id="bazi-form">
+      <h2>出生資料</h2>
+      <div class="grid-2">
+        <div class="field">
+          <label for="birth-year">西元年</label>
+          <input id="birth-year" type="number" min="1900" max="2100" placeholder="例如 1990" required>
+        </div>
+        <div class="field">
+          <label for="birth-month">月份</label>
+          <select id="birth-month" required>
+            <option value="">請選擇</option>
+            <option value="1">1 月</option><option value="2">2 月</option><option value="3">3 月</option>
+            <option value="4">4 月</option><option value="5">5 月</option><option value="6">6 月</option>
+            <option value="7">7 月</option><option value="8">8 月</option><option value="9">9 月</option>
+            <option value="10">10 月</option><option value="11">11 月</option><option value="12">12 月</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="birth-day">日期</label>
+          <input id="birth-day" type="number" min="1" max="31" placeholder="例如 15" required>
+        </div>
+        <div class="field">
+          <label for="birth-hour">出生時辰</label>
+          <select id="birth-hour">
+            <option value="unknown">不知道</option>
+            <option value="0">子時 23:00-00:59</option>
+            <option value="1">丑時 01:00-02:59</option>
+            <option value="2">寅時 03:00-04:59</option>
+            <option value="3">卯時 05:00-06:59</option>
+            <option value="4">辰時 07:00-08:59</option>
+            <option value="5">巳時 09:00-10:59</option>
+            <option value="6">午時 11:00-12:59</option>
+            <option value="7">未時 13:00-14:59</option>
+            <option value="8">申時 15:00-16:59</option>
+            <option value="9">酉時 17:00-18:59</option>
+            <option value="10">戌時 19:00-20:59</option>
+            <option value="11">亥時 21:00-22:59</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>性別</label>
+        <div class="segmented">
+          <button type="button" class="active" data-gender="男">男命</button>
+          <button type="button" data-gender="女">女命</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>分析主題</label>
+        <div class="topic-grid">
+          <button type="button" class="active" data-topic="未來五年財運">未來五年財運</button>
+          <button type="button" data-topic="適合行業">適合行業</button>
+          <button type="button" data-topic="正緣桃花">正緣桃花</button>
+          <button type="button" data-topic="事業發展">事業發展</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="custom-topic">自訂主題</label>
+        <textarea id="custom-topic" placeholder="可留空；例如：2026 到 2030 是否適合創業？"></textarea>
+      </div>
+
+      <div class="api-line">
+        <div class="field">
+          <label for="api-url">API 位置</label>
+          <input id="api-url" type="text" value="/api/analyze">
+        </div>
+        <p class="mini">部署到 Vercel 後用 `/api/analyze`。若直接用 file 開啟本頁，請填你的完整網址，例如 `https://你的網站.vercel.app/api/analyze`。</p>
+      </div>
+
+      <div class="action-row">
+        <button type="button" class="secondary" id="test-btn">測試 API</button>
+        <button type="submit" class="primary" id="submit-btn">生成詳批</button>
+      </div>
+      <div class="status" id="status"></div>
+    </form>
+
+    <section class="panel">
+      <h2>四柱換算</h2>
+      <div class="pillars">
+        <div class="pillar"><small>年柱</small><strong id="year-pillar">--</strong></div>
+        <div class="pillar"><small>月柱</small><strong id="month-pillar">--</strong></div>
+        <div class="pillar"><small>日柱</small><strong id="day-pillar">--</strong></div>
+        <div class="pillar"><small>時柱</small><strong id="hour-pillar">未知</strong></div>
+      </div>
+      <p class="mini" id="calc-note">請先輸入西元年月日。年柱以立春前後切年，月柱以節氣約略換月。</p>
+
+      <div class="result-card hidden" id="report-card">
+        <div class="result-head">📜 八字命理排盤與運勢詳批</div>
+        <div class="result-body" id="report-body"></div>
+      </div>
+
+      <div class="result-card hidden" id="visual-card">
+        <div class="result-head">🎨 九宮格命理意境繪圖 Prompt</div>
+        <div class="result-body">
+          <div class="prompt-box" id="visual-prompt"></div>
+          <button type="button" class="secondary copy-btn" id="copy-btn">複製繪圖 Prompt</button>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <div class="footer">順勢而為 ・ 補強能量 ・ 穩定前進</div>
+</main>
+
+<script>
+const TG = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+const DZ = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+const STEM_ELEMENT = { 甲: '陽木', 乙: '陰木', 丙: '陽火', 丁: '陰火', 戊: '陽土', 己: '陰土', 庚: '陽金', 辛: '陰金', 壬: '陽水', 癸: '陰水' };
+const SOLAR_MONTHS = [
+  { month: 2, day: 4, branch: 2, name: '立春', label: '寅月' },
+  { month: 3, day: 6, branch: 3, name: '驚蟄', label: '卯月' },
+  { month: 4, day: 5, branch: 4, name: '清明', label: '辰月' },
+  { month: 5, day: 6, branch: 5, name: '立夏', label: '巳月' },
+  { month: 6, day: 6, branch: 6, name: '芒種', label: '午月' },
+  { month: 7, day: 7, branch: 7, name: '小暑', label: '未月' },
+  { month: 8, day: 8, branch: 8, name: '立秋', label: '申月' },
+  { month: 9, day: 8, branch: 9, name: '白露', label: '酉月' },
+  { month: 10, day: 8, branch: 10, name: '寒露', label: '戌月' },
+  { month: 11, day: 7, branch: 11, name: '立冬', label: '亥月' },
+  { month: 12, day: 7, branch: 0, name: '大雪', label: '子月' },
+  { month: 1, day: 6, branch: 1, name: '小寒', label: '丑月' },
+];
+
+let selectedGender = '男';
+let selectedTopic = '未來五年財運';
+let currentPillars = null;
+
+const $ = (id) => document.getElementById(id);
+const mod = (n, m) => ((n % m) + m) % m;
+
+function getYearPillar(year, month, day) {
+  const baziYear = month < 2 || (month === 2 && day < 4) ? year - 1 : year;
+  return {
+    year: baziYear,
+    pillar: TG[mod(baziYear - 4, 10)] + DZ[mod(baziYear - 4, 12)],
+  };
+}
+
+function getSolarMonth(month, day) {
+  let chosen = SOLAR_MONTHS[10];
+  for (const term of SOLAR_MONTHS) {
+    if (term.month === 1) continue;
+    if (month > term.month || (month === term.month && day >= term.day)) {
+      chosen = term;
+    }
+  }
+  if (month === 1 && day >= 6) chosen = SOLAR_MONTHS[11];
+  if (month === 1 && day < 6) chosen = SOLAR_MONTHS[10];
+  return chosen;
+}
+
+function getMonthPillar(baziYear, month, day) {
+  const solar = getSolarMonth(month, day);
+  const yearStemIndex = mod(baziYear - 4, 10);
+  const yinStemBase = [2, 4, 6, 8, 0][Math.floor(yearStemIndex / 2)];
+  const orderFromYin = mod(solar.branch - 2, 12);
+  const stem = TG[mod(yinStemBase + orderFromYin, 10)];
+  return {
+    pillar: stem + DZ[solar.branch],
+    solar,
+  };
+}
+
+function getJulianDay(year, month, day) {
+  let y = year;
+  let m = month;
+  if (m <= 2) {
+    y -= 1;
+    m += 12;
+  }
+  const a = Math.floor(y / 100);
+  const b = 2 - a + Math.floor(a / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + b - 1524;
+}
+
+function getDayPillar(year, month, day) {
+  const jd = getJulianDay(year, month, day);
+  const stem = TG[mod(jd + 9, 10)];
+  const branch = DZ[mod(jd + 1, 12)];
+  return stem + branch;
+}
+
+function getHourPillar(dayPillar, hourBranchIndex) {
+  if (hourBranchIndex === 'unknown') return '未知';
+  const dayStemIndex = TG.indexOf(dayPillar[0]);
+  const ziStemBase = [0, 2, 4, 6, 8][Math.floor(dayStemIndex / 2)];
+  const idx = Number(hourBranchIndex);
+  return TG[mod(ziStemBase + idx, 10)] + DZ[idx];
+}
+
+function calculatePillars() {
+  const year = Number($('birth-year').value);
+  const month = Number($('birth-month').value);
+  const day = Number($('birth-day').value);
+  const hour = $('birth-hour').value;
+
+  if (!year || !month || !day) {
+    currentPillars = null;
+    $('year-pillar').textContent = '--';
+    $('month-pillar').textContent = '--';
+    $('day-pillar').textContent = '--';
+    $('hour-pillar').textContent = '未知';
+    $('calc-note').textContent = '請先輸入西元年月日。年柱以立春前後切年，月柱以節氣約略換月。';
+    return null;
+  }
+
+  const maxDay = new Date(year, month, 0).getDate();
+  if (day < 1 || day > maxDay) {
+    currentPillars = null;
+    $('calc-note').textContent = '日期不正確，請重新輸入。';
+    return null;
+  }
+
+  const y = getYearPillar(year, month, day);
+  const m = getMonthPillar(y.year, month, day);
+  const d = getDayPillar(year, month, day);
+  const h = getHourPillar(d, hour);
+
+  currentPillars = {
+    birth: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+    year: y.pillar,
+    month: m.pillar,
+    day: d,
+    hour: h,
+    dayMaster: d[0],
+    dayMasterElement: STEM_ELEMENT[d[0]],
+    solarTerm: m.solar,
+  };
+
+  $('year-pillar').textContent = currentPillars.year;
+  $('month-pillar').textContent = currentPillars.month;
+  $('day-pillar').textContent = currentPillars.day;
+  $('hour-pillar').textContent = currentPillars.hour;
+  $('calc-note').textContent = `日主：${currentPillars.dayMaster}（${currentPillars.dayMasterElement}）。月令依 ${m.solar.name} 起算為 ${m.solar.label}。`;
+  return currentPillars;
+}
+
+function setStatus(message, ok) {
+  const box = $('status');
+  box.textContent = message;
+  box.className = `status visible ${ok ? 'ok' : 'bad'}`;
+}
+
+function getTopic() {
+  const custom = $('custom-topic').value.trim();
+  return custom || selectedTopic;
+}
+
+function getApiUrl() {
+  return $('api-url').value.trim() || '/api/analyze';
+}
+
+function buildPrompt(pillars, topic) {
+  return `🔮 八字命理大師與視覺化流年生成指令 (BaZi Destiny Master Prompt)
+
+請依據以下資料進行分析：
+
+出生日期：${pillars.birth}
+年柱：${pillars.year}
+月柱：${pillars.month}
+日柱：${pillars.day}
+時柱：${pillars.hour}
+性別：${selectedGender}
+分析主題：${topic}
+
+【角色設定 (Persona)】
+你是一位精通《淵海子平》、《滴天髓》與《窮通寶鑑》的資深八字命理大師。你能精準排定四柱八字，洞悉天干地支的刑衝會合，並找出命局中的「喜用神」與「忌神」。同時，你也是一位超現實主義的視覺藝術總監，能將抽象的五行能量與十神關係，轉化為具象化的「命運九宮格」圖像描述。
+
+【任務一：八字排盤與邏輯推演】
+請依序檢查：
+STEP 1 節氣校正：說明本頁已用西元生日做節氣近似換算，年柱以立春切年，月柱以節氣切月；若需精準到分鐘，提醒應核對專業萬年曆。
+STEP 2 四柱排盤：排出年柱、月柱、日柱、時柱之天干地支。
+STEP 3 定元神（日主）：確認日干為何，並判斷日主在月令的旺衰強弱。
+STEP 4 十神定位與喜忌：標出其餘七字對應日主的十神，判斷命局格局，並定出喜用神與忌神。
+
+重要限制：請輸出推演摘要與結論，不要輸出逐字內在思考過程。
+
+【任務二：輸出命理分析報告】
+請針對「${topic}」撰寫分析報告，包含：
+1. 本命元神特質：描述日主天干的自然意象。
+2. 格局與十神分析：用白話解釋命盤結構。
+3. 針對性回答：針對分析主題進行流年或大運分析。
+4. 改運/補強建議：依喜用神給出幸運色、方位、飾品材質、心態調整。
+
+【任務三：生成「九宮格 Q版漫畫」提示詞】
+請將命局轉化為 9 個關鍵意境，撰寫英文 AI 繪圖提示詞。
+
+風格設定：1:1 ratio, nine-panel comic grid, modern ukiyo-e or refined chibi style, strong elemental energy flow.
+角色設定：
+甲乙木：vine or leaf spirit.
+丙丁火：glowing fire-patterned passionate character.
+戊己土：earth-tone or stone-textured guardian.
+庚辛金：metal armored warrior or artisan.
+壬癸水：water-flow sage in blue flowing fabric.
+
+九格內容：
+左上：年柱/根基。
+中上：月柱/環境。
+右上：日主/本我。
+左中：日支/配偶。
+正中：時柱/晚運。
+右中：十神/技能。
+左下：喜用神/救星。
+中下：忌神/挑戰。
+右下：針對「${topic}」成功後的願景。
+
+【最終輸出格式】
+第一部分：📜 八字命理排盤與運勢詳批
+第二部分：🎨 九宮格命理意境繪圖 Prompt
+
+請使用繁體中文撰寫第一部分。第二部分請使用英文繪圖提示詞，最後一定包含 --ar 1:1。`;
+}
+
+async function callApi(prompt) {
+  const response = await fetch(getApiUrl(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt }),
+  });
+  const raw = await response.text();
+  let data = {};
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    throw new Error(`HTTP ${response.status}，伺服器回傳不是 JSON：${raw.slice(0, 500)}`);
+  }
+  if (!response.ok) {
+    const model = data.model ? `\n目前模型：${data.model}` : '';
+    throw new Error(`HTTP ${response.status}\n${data.error || '未知錯誤'}${model}`);
+  }
+  return data;
+}
+
+function splitResult(text) {
+  const marker = '第二部分';
+  const idx = text.indexOf(marker);
+  if (idx === -1) return { report: text, visual: '' };
+  return {
+    report: text.slice(0, idx).trim(),
+    visual: text.slice(idx).trim(),
+  };
+}
+
+function formatReport(text) {
+  return text
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/^(第一部分[^\n]*|📜[^\n]*|【[^】]+】)/gm, '<h3>$1</h3>')
+    .replace(/\n\n+/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+}
+
+async function testApi() {
+  $('test-btn').disabled = true;
+  setStatus('正在測試 API...', true);
+  try {
+    const data = await callApi('請只回覆「API 測試成功」。');
+    setStatus(`API 連線成功\n模型：${data.model || '未回傳'}\n回覆：${data.text || ''}`, true);
+  } catch (err) {
+    setStatus(`API 連線失敗\n${err.message}`, false);
+  } finally {
+    $('test-btn').disabled = false;
+  }
+}
+
+async function generateReport(event) {
+  event.preventDefault();
+  const pillars = calculatePillars();
+  if (!pillars) {
+    setStatus('請先填寫正確的西元年月日。', false);
+    return;
+  }
+
+  $('submit-btn').disabled = true;
+  $('test-btn').disabled = true;
+  $('report-card').classList.add('hidden');
+  $('visual-card').classList.add('hidden');
+  setStatus('正在生成命理詳批，請稍候...', true);
+
+  try {
+    const data = await callApi(buildPrompt(pillars, getTopic()));
+    const parts = splitResult(data.text || '');
+    $('report-body').innerHTML = `<p>${formatReport(parts.report)}</p>`;
+    $('visual-prompt').textContent = parts.visual || 'AI 沒有分出第二部分，請查看上方完整報告。';
+    $('report-card').classList.remove('hidden');
+    $('visual-card').classList.remove('hidden');
+    setStatus(`生成完成\n模型：${data.model || '未回傳'}`, true);
+  } catch (err) {
+    setStatus(`生成失敗\n${err.message}`, false);
+  } finally {
+    $('submit-btn').disabled = false;
+    $('test-btn').disabled = false;
+  }
+}
+
+document.querySelectorAll('[data-gender]').forEach((button) => {
+  button.addEventListener('click', () => {
+    selectedGender = button.dataset.gender;
+    document.querySelectorAll('[data-gender]').forEach((item) => item.classList.toggle('active', item === button));
+  });
+});
+
+document.querySelectorAll('[data-topic]').forEach((button) => {
+  button.addEventListener('click', () => {
+    selectedTopic = button.dataset.topic;
+    $('custom-topic').value = '';
+    document.querySelectorAll('[data-topic]').forEach((item) => item.classList.toggle('active', item === button));
+  });
+});
+
+['birth-year', 'birth-month', 'birth-day', 'birth-hour'].forEach((id) => {
+  $(id).addEventListener('input', calculatePillars);
+  $(id).addEventListener('change', calculatePillars);
+});
+
+$('test-btn').addEventListener('click', testApi);
+$('bazi-form').addEventListener('submit', generateReport);
+$('copy-btn').addEventListener('click', async () => {
+  await navigator.clipboard.writeText($('visual-prompt').textContent);
+  setStatus('繪圖 Prompt 已複製。', true);
+});
+
+calculatePillars();
+</script>
+</body>
+</html>
