@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: '缺少 prompt 參數' });
   }
 
-  const model = process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-latest';
+  const model = process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001';
 
   try {
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {
