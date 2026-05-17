@@ -581,14 +581,45 @@ async function callApi(prompt) {
 }
 
 function splitResult(text) {
-  const marker = '第二部分';
-  const idx = text.indexOf(marker);
-  if (idx === -1) return { report: text, visual: '' };
+  const markers = [
+    '第二部分',
+    '🎨 九宮格命理意境繪圖 Prompt',
+    '九宮格命理意境繪圖 Prompt',
+    'Visual Prompt',
+    'AI繪圖提示詞',
+    'AI 繪圖提示詞',
+  ];
+
+  for (const marker of markers) {
+    const idx = text.indexOf(marker);
+    if (idx !== -1) {
+      return {
+        report: text.slice(0, idx).trim(),
+        visual: text.slice(idx).trim(),
+      };
+    }
+  }
+
+  const arIndex = text.lastIndexOf('--ar 1:1');
+  if (arIndex !== -1) {
+    const start = Math.max(
+      text.lastIndexOf('\n\n', arIndex),
+      text.lastIndexOf('Prompt', arIndex),
+      0
+    );
+
+    return {
+      report: text.slice(0, start).trim(),
+      visual: text.slice(start).trim(),
+    };
+  }
+
   return {
-    report: text.slice(0, idx).trim(),
-    visual: text.slice(idx).trim(),
+    report: text,
+    visual: text,
   };
 }
+
 
 function formatReport(text) {
   return text
